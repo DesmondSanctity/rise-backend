@@ -1,8 +1,11 @@
 import express, { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import redis from 'redis';
+import dotenv from 'dotenv'
 import bodyParser from 'body-parser';
-import { createTables } from './config/schema';
-import { AppError } from './middlewares/responseHandler';
+import { createTables } from './config/schema.js';
+import { AppError } from './middlewares/responseHandler.js';
+
+dotenv.config();
 
 const app = express();
 
@@ -10,6 +13,24 @@ const app = express();
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(express.json());
 app.disable('x-powered-by'); // less hackers know about our stack
+
+const port = process.env.PORT || 5000;
+
+// create a redis client connection
+export const client = redis.createClient({
+    url: process.env.REDIS_URL,
+});
+
+// on the connection
+client.on("connect", () => console.log("Connected to Redis"));
+
+await client.connect();
+
+// Routes
+app.get('/', (req, res) => {
+    res.send('Hello World');
+});
+
 
 // Your middleware function to handle errors
 const errorHandler = (err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
@@ -32,23 +53,6 @@ const errorHandler = (err: ErrorRequestHandler, req: Request, res: Response, nex
 };
 
 app.use(errorHandler);
-
-const port = process.env.PORT || 5000;
-
-// create a redis client connection
-export const client = redis.createClient({
-    url: process.env.REDIS_URL,
-});
-
-// on the connection
-client.on("connect", () => console.log("Connected to Redis"));
-
-await client.connect();
-
-// Routes
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});
 
 // Start server
 async function startServer() {
