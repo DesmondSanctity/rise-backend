@@ -1,9 +1,10 @@
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 export const db = new Pool({
   user: 'postgres',
   host: 'localhost',
-  database: 'api',
-  password: 'password',
+  database: 'postgres',
+  password: 'anon',
   port: 5432,
 });

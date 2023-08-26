@@ -1,17 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-interface JWTUser {
-    user: string | undefined | JwtPayload;
-    email: string;
-}
-
 interface DecodedToken extends JwtPayload {
     exp: number;
 }
 
 /** auth middleware */
-export const Auth = async (req: Request & JWTUser, res: Response, next: NextFunction) => {
+export const Auth = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1];
 
@@ -26,12 +21,12 @@ export const Auth = async (req: Request & JWTUser, res: Response, next: NextFunc
     if (!decodedToken) {
         throw new Error('Forbidden')
     }
-    
+
     if (decodedToken.exp <= Math.floor(Date.now() / 1000)) {
         throw new Error('Token expired');
     }
 
-    req.user = decodedToken;
+    req.user  = decodedToken;
 
     next();
 

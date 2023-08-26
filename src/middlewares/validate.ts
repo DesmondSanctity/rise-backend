@@ -23,7 +23,7 @@ function postExist(postId: string) {
 }
 
 // Signup validation
-export const validateSignup = (req: Request, res: Response, next: NextFunction) => {
+export const validateCreateUser = (req: Request, res: Response, next: NextFunction) => {
 
     const errors = isEmpty([
         req.body.name,
@@ -77,6 +77,16 @@ export const validateLogin = (req: Request, res: Response, next: NextFunction) =
             errors: [
                 {
                     message: 'Invalid email format'
+                }
+            ]
+        });
+    }
+
+    if (!validPassword(req.body.password)) {
+        return res.status(400).json({
+            error: [
+                {
+                    message: 'Password must be 6 characters, have 1 uppercase, 1 lowercase and 1 number'
                 }
             ]
         });

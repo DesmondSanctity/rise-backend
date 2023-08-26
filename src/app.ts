@@ -1,6 +1,6 @@
 import express, { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import redis from 'redis';
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import { createTables } from './config/schema.js';
 import { AppError } from './middlewares/responseHandler.js';
@@ -59,7 +59,7 @@ async function startServer() {
 
     await createTables()
         .then(result => {
-            console.log(result)
+            console.log('Database connected successfully')
         })
         .catch(error => {
             console.log(error); // need to pass to error handler
