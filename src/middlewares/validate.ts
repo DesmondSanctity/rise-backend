@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { isEmpty } from '../utils/isEmpty.js';
+import { findUserById } from '../models/user.js';
+import { findPostById } from '../models/post.js';
 
 // Email validation regex
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/
 
 // Validate email 
 function validEmail(email: string) {
@@ -11,15 +14,25 @@ function validEmail(email: string) {
 
 // Validate password
 function validPassword(password: string) {
-    return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/.test(password);
+    return passwordRegex.test(password);
 }
 
-function userExist(userId: string) {
-    return true
+async function userExist(user_id: number) {
+    const user = await findUserById(user_id)
+
+    if (user) {
+        return true
+    } else
+        return false
 }
 
-function postExist(postId: string) {
-    return true
+async function postExist(post_id: number) {
+    const post = await findPostById(post_id)
+
+    if (post) {
+        return true
+    } else
+        return false
 }
 
 // Signup validation
@@ -103,14 +116,14 @@ export const validateCreatePost = (req: Request, res: Response, next: NextFuncti
     const errors = isEmpty([
         req.body.title,
         req.body.body,
-        req.body.userId
+        req.body.user_id
     ]);
 
     if (errors.length > 0) {
         return res.status(400).json({ errors });
     }
 
-    if (!userExist(req.body.userId)) {
+    if (!userExist(req.body.user_id)) {
         return res.status(400).json({
             errors: [
                 {
@@ -130,15 +143,15 @@ export const validateCreateComment = (req: Request, res: Response, next: NextFun
     // Validate content, post_id, user_id
     const errors = isEmpty([
         req.body.content,
-        req.body.postId,
-        req.body.userId
+        req.body.post_id,
+        req.body.user_id
     ]);
 
     if (errors.length > 0) {
         return res.status(400).json({ errors });
     }
 
-    if (!userExist(req.body.userId)) {
+    if (!userExist(req.body.user_id)) {
         return res.status(400).json({
             errors: [
                 {
@@ -148,7 +161,7 @@ export const validateCreateComment = (req: Request, res: Response, next: NextFun
         });
     }
 
-    if (!postExist(req.body.postId)) {
+    if (!postExist(req.body.post_id)) {
         return res.status(400).json({
             errors: [
                 {

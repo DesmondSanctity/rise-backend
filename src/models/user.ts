@@ -43,6 +43,13 @@ export async function findUserById(id: number): Promise<IUser | null> {
     return rows[0] || null;
 }
 
+export async function findUserByEmail(email: string): Promise<IUser | null> {
+    const query = 'SELECT * FROM users WHERE email = $1';
+    const { rows } = await db.query(query, [email]);
+
+    return rows[0] || null;
+}
+
 // Update
 export async function updateUser(id: number, name?: string, email?: string, password?: string) {
     const params: (string | number)[] = [id];

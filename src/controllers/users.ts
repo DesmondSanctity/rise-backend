@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import {
     IUser,
@@ -7,7 +8,8 @@ import {
     findAllUsers,
     findUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    findUserByEmail
 } from '../models/user.js';
 import {
     validateCreateUser,
@@ -23,7 +25,11 @@ userRouter.post('/', validateCreateUser, async (req: Request, res: Response) => 
     const { name, email, password } = req.body;
 
     try {
-        const user: IUser = await createUser(name, email, password);
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user: IUser = await createUser(name, email, hashedPassword);
+
         return res.status(201).json(user);
     } catch (err) {
         return res.status(500).json({ message: 'Error creating user' });
@@ -34,6 +40,7 @@ userRouter.post('/', validateCreateUser, async (req: Request, res: Response) => 
 userRouter.get('/', Auth, async (req: Request, res: Response) => {
     try {
         const users: IUser[] = await findAllUsers();
+
         return res.json(users);
     } catch (err) {
         return res.status(500).json({ message: 'Error getting users' });
@@ -45,16 +52,23 @@ userRouter.post('/login', validateLogin, async (req: Request, res: Response) => 
     // Login logic
     const { email, password } = req.body;
 
-    const user = await findUserById(email);
+    const user = await findUserByEmail(email);
 
     if (!user) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: 'Invalid email' });
+    }
+
+    // Compare hashed password
+    const isValid = await bcrypt.compare(password, user.password);
+
+    if (!isValid) {
+        return res.status(401).json({ message: 'Invalid password' });
     }
 
     // Create JWT payload
     const payload = {
-        id: user.id,
-        email: user.email
+        user_id: user?.id,
+        email: user?.email
     };
 
     // Sign token
@@ -69,10 +83,13 @@ userRouter.get('/:id', Auth, async (req: Request, res: Response) => {
 
     try {
         const user: IUser | null = await findUserById(id);
+
         if (!user) {
             return res.status(404).end();
         }
+
         return res.json(user);
+
     } catch (err) {
         return res.status(500).json({ message: 'Error getting user' });
     }
@@ -86,10 +103,13 @@ userRouter.put('/:id', Auth, validateCreateUser, async (req: Request, res: Respo
 
     try {
         const updated = await updateUser(id, name, email, password);
+
         if (!updated) {
             return res.status(404).end();
         }
+
         return res.status(204).end();
+
     } catch (err) {
         return res.status(500).json({ message: 'Error updating user' });
     }
@@ -102,9 +122,11 @@ userRouter.delete('/:id', Auth, async (req: Request, res: Response) => {
 
     try {
         const deleted = await deleteUser(id);
+
         if (!deleted) {
             return res.status(404).end();
         }
+
         return res.status(204).end();
 
     } catch (err) {

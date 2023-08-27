@@ -3,6 +3,9 @@ import redis from 'redis';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import { createTables } from './config/schema.js';
+import userRouter from './controllers/users.js';
+import postRouter from './controllers/posts.js';
+import commentRouter from './controllers/comments.js';
 import { AppError } from './middlewares/responseHandler.js';
 
 dotenv.config();
@@ -53,6 +56,11 @@ const errorHandler = (err: ErrorRequestHandler, req: Request, res: Response, nex
 };
 
 app.use(errorHandler);
+
+// Define the routes
+app.use('/users', userRouter);
+app.use('/posts', postRouter);
+app.use('/comments', commentRouter);
 
 // Start server
 async function startServer() {
