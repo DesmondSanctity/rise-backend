@@ -3,10 +3,12 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 
 interface DecodedToken extends JwtPayload {
     exp: number;
+    user_id: string;
+    email: string
 }
 
 /** auth middleware */
-export const Auth = async (req: Request, res: Response, next: NextFunction) => {
+export const Auth = async (req: Request & { user?: { user_id: string; email: string } }, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1];
 
@@ -26,7 +28,7 @@ export const Auth = async (req: Request, res: Response, next: NextFunction) => {
         throw new Error('Token expired');
     }
 
-    req.user  = decodedToken;
+    req.user = decodedToken;
 
     next();
 

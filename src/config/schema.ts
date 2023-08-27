@@ -40,13 +40,17 @@ const commentsTable = `
   CREATE INDEX IF NOT EXISTS comments_created_at_idx ON comments(created_at);
 `;
 
-// Create tables
-export async function createTables() {
+export const connectToDB = async () => {
+    try {
+        await db.connect();
 
-    await db.query(usersTable);
+        await db.query(usersTable);
 
-    await db.query(postsTable);
+        await db.query(postsTable);
 
-    await db.query(commentsTable);
-
-}
+        await db.query(commentsTable);
+        
+    } catch (err) {
+        console.log(err);
+    }
+};

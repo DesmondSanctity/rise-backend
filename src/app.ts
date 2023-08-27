@@ -2,7 +2,7 @@ import express, { ErrorRequestHandler, NextFunction, Request, Response } from 'e
 import redis from 'redis';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
-import { createTables } from './config/schema.js';
+import { connectToDB } from './config/schema.js';
 import userRouter from './controllers/users.js';
 import postRouter from './controllers/posts.js';
 import commentRouter from './controllers/comments.js';
@@ -65,7 +65,7 @@ app.use('/comments', commentRouter);
 // Start server
 async function startServer() {
 
-    await createTables()
+    await connectToDB()
         .then(result => {
             console.log('Database connected successfully')
         })
@@ -74,7 +74,7 @@ async function startServer() {
         });
 
     app.listen(port, () => {
-        console.log('Server listening on port 3000');
+        console.log(`Server listening on port ${port}`);
     });
 
 }
