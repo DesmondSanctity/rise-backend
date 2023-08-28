@@ -1,8 +1,8 @@
 # rise-backend
-A technical assesment for Senior Backend role at RiseVest with Node.js, Typescript and Postgres SQL
+A backen api built with Node.js, Typescript and Postgres SQL. This app (api) is hosted [here](https://rise-backend.onrender.com/).
 
 
-# how to run the app
+# running the app
 
 ## running locally
 
