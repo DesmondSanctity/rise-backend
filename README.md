@@ -8,19 +8,28 @@ A technical assesment for Senior Backend role at RiseVest with Node.js, Typescri
 
 - Clone this repo
 - Install dependencies: `npm install`
-- Setup a pg db using any of the client app. I used pg4Admin
+- Setup a pg db using any of the client app. I used postgres db provision from [Render](https://onrender.com)
 - Setup environment variables: create a `.env` file with the database url
 
 ```bash
 JWT_SECRET=<your secret JWT key>
 JWT_EXPIRES=12h
-DB_USER=postgres
+DB_URL=
+PORT=5000
+REDIS_URL=<your redis url>
+```
+
+- If you are using local postgres then your env might look like this
+```bash
+JWT_SECRET=<your secret JWT key>
+JWT_EXPIRES=12h
+DB_USER=<db user>
 DB_HOST=localhost
 DB_PASSWORD=<your password>
 DB_PORT=5432
 PORT=5000
-DB_NAME=postgres
-REDIS_URL=<your redis db url>
+DB_NAME=<db name>
+REDIS_URL=<your redis url>
 ```
 
 - Start dev server: `npm run dev`
