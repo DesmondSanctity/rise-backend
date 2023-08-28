@@ -53,33 +53,29 @@ export async function findUserByEmail(email: string): Promise<IUser | null> {
 export async function findTopThree(): Promise<IUser[]> {
     // Use efficient JOIN with LIMIT to get top 3 users by post count
     const topUsers = await db.query(
-        `SELECT u.id, u.name 
-       FROM users u
-       LEFT JOIN posts p ON u.id = p.user_id
-       GROUP BY u.id
-       ORDER BY COUNT(p.id) DESC
-       LIMIT 3`
+        `SELECT 
+        u.id, 
+        u.name,
+        pc.post_count,
+        c.content AS latest_comment
+      FROM users u
+      INNER JOIN comments c 
+        ON u.id = c.user_id
+      INNER JOIN (
+        SELECT user_id, MAX(created_at) latest 
+        FROM comments
+        GROUP BY user_id
+      ) t ON c.user_id = t.user_id AND c.created_at = t.latest
+      INNER JOIN (
+        SELECT user_id, COUNT(id) post_count
+        FROM posts
+        GROUP BY user_id
+      ) pc ON u.id = pc.user_id
+      ORDER BY pc.post_count DESC
+      LIMIT 3`
     );
 
-    const topUsersWithComments: { id: number, name: string, latestComment: string }[] = [];
-
-    for (const user of topUsers.rows) {
-        // Get latest comment for each top user
-        const latestComment = await db.query(`
-            SELECT c.content
-            FROM comments c
-            WHERE c.user_id = $1
-            ORDER BY c.created_at DESC
-            LIMIT 1
-            `, [user.id]);
-
-        topUsersWithComments.push({
-            ...user,
-            latestComment: latestComment.rows[0]?.content
-        });
-    }
-
-    return topUsersWithComments as unknown as IUser[];
+    return topUsers.rows as unknown as IUser[];
 }
 
 // Update
