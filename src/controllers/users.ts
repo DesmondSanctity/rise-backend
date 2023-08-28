@@ -19,6 +19,7 @@ import {
     validateCreatePost
 } from '../middlewares/validate.js';
 import { Auth } from '../middlewares/auth.js';
+import { AppError, AppSuccess } from '../middlewares/responseHandler.js';
 
 
 const userRouter = Router();
@@ -33,22 +34,40 @@ userRouter.post('/', validateCreateUser, async (req: Request, res: Response) => 
 
         const user: IUser = await createUser(name, email, hashedPassword);
 
-        return res.status(201).json(user);
-    } catch (err) {
-        return res.status(500).json({ message: 'Error creating user' });
+        if (user) {
+            new AppSuccess("success", "Post created successfully", {user}, 201).send(res);
+        } else {
+            throw new AppError("failed", "Error creating user. Try again!", 400);
+        }
+
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 
 // POST users/:id/posts
 userRouter.post('/:id/posts', Auth, validateCreatePost, async (req: Request, res: Response) => {
     const { title, content } = req.body;
-    const { id  } = req.params
+    const { id } = req.params
 
     try {
         const post: IPost = await createPost(title, content, parseInt(id));
-        return res.status(201).json(post);
-    } catch (err) {
-        return res.status(500).json({ message: 'Error creating post' });
+
+        if (post) {
+            new AppSuccess("success", "Post created successfully", { post }, 201).send(res);
+        } else {
+            throw new AppError("failed", "Error creating user post. Try again!", 400);
+        }
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 
@@ -57,9 +76,18 @@ userRouter.get('/', Auth, async (req: Request, res: Response) => {
     try {
         const users: IUser[] = await findAllUsers();
 
-        return res.json(users);
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting users' });
+        if (users) {
+            new AppSuccess("success", "Users fetched successfully", {users}, 200).send(res);
+        } else {
+            throw new AppError("failed", "Error fetching users record. Try again!", 400);
+        }
+
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 
@@ -68,9 +96,18 @@ userRouter.get('/topthree', Auth, async (req: Request, res: Response) => {
     try {
         const users: IUser[] = await findTopThree();
 
-        return res.json(users);
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting top three users' });
+        if (users) {
+            new AppSuccess("success", "Users fetched successfully", {users}, 200).send(res);
+        } else {
+            throw new AppError("failed", "Error fetching users. Try again!", 400);
+        }
+
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 
@@ -79,9 +116,19 @@ userRouter.get('/:id/posts', async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     try {
         const posts: IPost[] | null = await findPostsByUser(id);
-        return res.json(posts);
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting posts' });
+        
+        if (posts) {
+            new AppSuccess("success", "Post fetched successfully", {posts}, 200).send(res);
+        } else {
+            throw new AppError("failed", "Error getting user posts. Try again!", 400);
+        }
+
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 
@@ -93,14 +140,14 @@ userRouter.post('/login', validateLogin, async (req: Request, res: Response) => 
     const user = await findUserByEmail(email);
 
     if (!user) {
-        return res.status(401).json({ message: 'Invalid email' });
+        throw new AppError("failed", "Invalid credentials. Try again!", 401);
     }
 
     // Compare hashed password
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
-        return res.status(401).json({ message: 'Invalid password' });
+        throw new AppError("failed", "Invalid credentials. Try again!", 401);
     }
 
     // Create JWT payload
@@ -112,9 +159,7 @@ userRouter.post('/login', validateLogin, async (req: Request, res: Response) => 
     // Sign token
     const token = jwt.sign(payload, process.env.JWT_SECRET as jwt.Secret, { expiresIn: '1d' });
 
-    user.password = ""
-
-    return res.json({ user, token });
+    new AppSuccess("success", "Login successful", { token }, 200).send(res);
 });
 
 // GET /users/:id
@@ -125,13 +170,17 @@ userRouter.get('/:id', Auth, async (req: Request, res: Response) => {
         const user: IUser | null = await findUserById(id);
 
         if (!user) {
-            return res.status(404).end();
+            throw new AppError("failed", "Cannot find record. Try again!", 404);
         }
 
-        return res.json(user);
+        new AppSuccess("success", "Record fetched successfully", { user }, 204).send(res);
 
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting user' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 
@@ -145,13 +194,17 @@ userRouter.put('/:id', Auth, async (req: Request, res: Response) => {
         const updated = await updateUser(id, name, email, password);
 
         if (!updated) {
-            return res.status(404).end();
+            throw new AppError("failed", "Error updating record. Try again!", 400);
         }
 
-        return res.status(204).end();
+        new AppSuccess("success", "Record updated successfully", {}, 204).send(res);
 
-    } catch (err) {
-        return res.status(500).json({ message: 'Error updating user' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 
@@ -164,13 +217,17 @@ userRouter.delete('/:id', Auth, async (req: Request, res: Response) => {
         const deleted = await deleteUser(id);
 
         if (!deleted) {
-            return res.status(404).end();
+            throw new AppError("failed", "Error deleting record. Try again!", 400);
         }
 
-        return res.status(204).end();
+        new AppSuccess("success", "Record deleted successfully", {}, 204).send(res);
 
-    } catch (err) {
-        return res.status(500).json({ message: 'Error deleting user' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
+
     }
 });
 

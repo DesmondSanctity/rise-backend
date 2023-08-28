@@ -70,7 +70,7 @@ async function startServer() {
             console.log('Database connected successfully')
         })
         .catch(error => {
-            console.log(error); // need to pass to error handler
+            throw new Error(error);
         });
 
     app.listen(port, () => {

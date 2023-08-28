@@ -50,8 +50,8 @@ export const connectToDB = async () => {
 
         await db.query(commentsTable);
         
-    } catch (err) {
-        console.log(err);
+    } catch (err: any) {
+        throw new Error (err)
     }
 };
 

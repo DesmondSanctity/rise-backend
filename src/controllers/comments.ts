@@ -10,6 +10,7 @@ import {
 } from '../models/comment.js';
 import { Auth } from '../middlewares/auth.js';
 import { validateCreateComment } from '../middlewares/validate.js';
+import { AppError, AppSuccess } from '../middlewares/responseHandler.js';
 
 
 const commentRouter = Router();
@@ -18,10 +19,18 @@ const commentRouter = Router();
 commentRouter.get('/', async (req: Request, res: Response) => {
     try {
         const comments: IComment[] = await findAllComments();
-        return res.json(comments);
+        
+        if (comments) {
+            new AppSuccess("success", "Comments fetched successfully", {comments}, 200).send(res);
+        } else {
+            throw new AppError("failed", "Error fetching comments. Try again!", 400);
+        }
 
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting comments' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+          });
     }
 });
 
@@ -32,13 +41,16 @@ commentRouter.get('/:id', async (req: Request, res: Response) => {
     try {
         const comment: IComment | null = await findCommentById(id);
         if (!comment) {
-            return res.status(404).end();
+            throw new AppError("failed", "Error fetching comment. Try again!", 400);
         }
+        
+        new AppSuccess("success", "Record fetched successfully", { comment}, 200).send(res);
 
-        return res.json(comment);
-
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting comment' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+          });
     }
 });
 
@@ -52,13 +64,16 @@ commentRouter.put('/:id', Auth, validateCreateComment, async (req: Request, res:
         const updated = await updateComment(id, content);
 
         if (!updated) {
-            return res.status(404).end();
+            throw new AppError("failed", "Error updating comment. Try again!", 400);
         }
 
-        return res.status(204).end();
+        new AppSuccess("success", "Record updated successfully", { }, 204).send(res);
 
-    } catch (err) {
-        return res.status(500).json({ message: 'Error updating comment' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+          });
     }
 });
 
@@ -71,13 +86,16 @@ commentRouter.delete('/:id', Auth, async (req: Request, res: Response) => {
         const deleted = await deleteComment(id);
 
         if (!deleted) {
-            return res.status(404).end();
+            throw new AppError("failed", "Error deleting comment. Try again!", 400);
         }
 
-        return res.status(204).end();
+        new AppSuccess("success", "Record deleted successfully", { }, 204).send(res);
 
-    } catch (err) {
-        return res.status(500).json({ message: 'Error deleting comment' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+          });
     }
 });
 

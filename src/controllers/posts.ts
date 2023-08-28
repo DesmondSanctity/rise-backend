@@ -10,6 +10,7 @@ import {
 import { IComment, createComment } from '../models/comment.js';
 import { validateCreateComment } from '../middlewares/validate.js';
 import { Auth } from '../middlewares/auth.js';
+import { AppError, AppSuccess } from '../middlewares/responseHandler.js';
 
 
 const postRouter = Router();
@@ -22,10 +23,17 @@ postRouter.post('/:id/comments', Auth, validateCreateComment, async (req: Reques
     try {
         const comment: IComment = await createComment(content, parseInt(id), user_id);
 
-        return res.status(201).json(comment);
+        if (comment) {
+            new AppSuccess("success", "Comment created successfully", {}, 201).send(res);
+        } else {
+            throw new AppError("failed", "Error creating comment. Try again!", 400);
+        }
 
-    } catch (err) {
-        return res.status(500).json({ message: 'Error creating comment' });
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
     }
 });
 
@@ -33,9 +41,18 @@ postRouter.post('/:id/comments', Auth, validateCreateComment, async (req: Reques
 postRouter.get('/', async (req: Request, res: Response) => {
     try {
         const posts: IPost[] = await findAllPosts();
-        return res.json(posts);
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting posts' });
+
+        if (posts) {
+            new AppSuccess("success", "Posts fetched successfully", { posts }, 200).send(res);
+        } else {
+            throw new AppError("failed", "Error fetching posts. Try again!", 400);
+        }
+
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
     }
 });
 
@@ -45,12 +62,17 @@ postRouter.get('/:id', async (req: Request, res: Response) => {
 
     try {
         const post: IPost | null = await findPostById(id);
+
         if (!post) {
-            return res.status(404).end();
+            throw new AppError("failed", "Error fetching post. Try again!", 400);
         }
-        return res.json(post);
-    } catch (err) {
-        return res.status(500).json({ message: 'Error getting post' });
+        new AppSuccess("success", "Record fetched successfully", { post }, 200).send(res);
+
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
     }
 });
 
@@ -63,11 +85,14 @@ postRouter.put('/:id', Auth, async (req: Request, res: Response) => {
     try {
         const updated = await updatePost(id, title, content);
         if (!updated) {
-            return res.status(404).end();
+            throw new AppError("failed", "Erorr updating record. Try again!", 400);
         }
-        return res.status(204).end();
-    } catch (err) {
-        return res.status(500).json({ message: 'Error updating post', error: err });
+        new AppSuccess("success", "Record updated successfully", {}, 204).send(res);
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
     }
 });
 
@@ -79,11 +104,14 @@ postRouter.delete('/:id', Auth, async (req: Request, res: Response) => {
     try {
         const deleted = await deletePost(id);
         if (!deleted) {
-            return res.status(404).end();
+            throw new AppError("failed", "Error deleting record. Try again!", 400);
         }
-        return res.status(204).end();
-    } catch (err) {
-        return res.status(500).json({ message: 'Error deleting post' });
+        new AppSuccess("success", "Record deleted successfully", {}, 204).send(res);
+    } catch (error: any) {
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        });
     }
 });
 
