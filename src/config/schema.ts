@@ -54,3 +54,9 @@ export const connectToDB = async () => {
         console.log(err);
     }
 };
+
+export async function disconnectDB() {
+    if(db) {
+      await db.end();
+    }
+  }

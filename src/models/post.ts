@@ -29,10 +29,10 @@ export async function findPostById(id: number): Promise<IPost | null> {
 }
 
 // Read All by User
-export async function findPostByUser(id: number): Promise<IPost[] | null> {
+export async function findPostsByUser(id: number): Promise<IPost[] | null> {
     const query = 'SELECT * FROM posts WHERE user_id = $1';
     const { rows } = await db.query(query, [id]);
-    return rows[0] || null;
+    return rows || null;
 }
 
 // Read All
@@ -58,7 +58,9 @@ export async function updatePost(id: number, title?: string, content?: string) {
         params.push(content);
     }
 
-    query += `WHERE id = $${params.length + 1}`;
+    query += `WHERE id = $1`;
+
+    console.log(query, params)
 
     const result = await db.query(query, params);
 

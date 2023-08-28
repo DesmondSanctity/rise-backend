@@ -12,7 +12,7 @@ import {
     findUserByEmail,
     findTopThree
 } from '../models/user.js';
-import { IPost, createPost, findPostByUser } from '../models/post.js';
+import { IPost, createPost, findPostsByUser } from '../models/post.js';
 import {
     validateCreateUser,
     validateLogin,
@@ -41,10 +41,11 @@ userRouter.post('/', validateCreateUser, async (req: Request, res: Response) => 
 
 // POST users/:id/posts
 userRouter.post('/:id/posts', Auth, validateCreatePost, async (req: Request, res: Response) => {
-    const { title, content, user_id } = req.body;
+    const { title, content } = req.body;
+    const { id  } = req.params
 
     try {
-        const post: IPost = await createPost(title, content, user_id);
+        const post: IPost = await createPost(title, content, parseInt(id));
         return res.status(201).json(post);
     } catch (err) {
         return res.status(500).json({ message: 'Error creating post' });
@@ -77,7 +78,7 @@ userRouter.get('/topthree', Auth, async (req: Request, res: Response) => {
 userRouter.get('/:id/posts', async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     try {
-        const posts: IPost[] | null = await findPostByUser(id);
+        const posts: IPost[] | null = await findPostsByUser(id);
         return res.json(posts);
     } catch (err) {
         return res.status(500).json({ message: 'Error getting posts' });
@@ -111,7 +112,9 @@ userRouter.post('/login', validateLogin, async (req: Request, res: Response) => 
     // Sign token
     const token = jwt.sign(payload, process.env.JWT_SECRET as jwt.Secret, { expiresIn: '1d' });
 
-    return res.json({ token });
+    user.password = ""
+
+    return res.json({ user, token });
 });
 
 // GET /users/:id
@@ -133,7 +136,7 @@ userRouter.get('/:id', Auth, async (req: Request, res: Response) => {
 });
 
 // PUT /users/:id
-userRouter.put('/:id', Auth, validateCreateUser, async (req: Request, res: Response) => {
+userRouter.put('/:id', Auth, async (req: Request, res: Response) => {
     // Update user
     const id = parseInt(req.params.id);
     const { name, email, password } = req.body;

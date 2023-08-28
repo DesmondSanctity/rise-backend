@@ -60,16 +60,16 @@ export async function findTopThree(): Promise<IUser[]> {
        ORDER BY COUNT(p.id) DESC
        LIMIT 3`
     );
-    
-    const topUsersWithComments: {id: number, name: string, latestComment: string}[] = [];
-    
+
+    const topUsersWithComments: { id: number, name: string, latestComment: string }[] = [];
+
     for (const user of topUsers.rows) {
         // Get latest comment for each top user
-        const latestComment = await db.query(
-            `SELECT c.content 
-            FROM comments c 
-            WHERE c.post_id IN (SELECT id FROM posts WHERE user_id = $1)
-            ORDER BY c.created_at DESC 
+        const latestComment = await db.query(`
+            SELECT c.content
+            FROM comments c
+            WHERE c.user_id = $1
+            ORDER BY c.created_at DESC
             LIMIT 1
             `, [user.id]);
 
@@ -103,7 +103,7 @@ export async function updateUser(id: number, name?: string, email?: string, pass
         params.push(password);
     }
 
-    query += `WHERE id = $${params.length}`;
+    query += `WHERE id = $1`;
 
     const result = await db.query(query, params);
 

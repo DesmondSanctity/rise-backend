@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { isEmpty } from '../utils/isEmpty.js';
-import { findUserById } from '../models/user.js';
 import { findPostById } from '../models/post.js';
 
 // Email validation regex
@@ -17,14 +16,6 @@ function validPassword(password: string) {
     return passwordRegex.test(password);
 }
 
-async function userExist(user_id: number) {
-    const user = await findUserById(user_id)
-
-    if (user) {
-        return true
-    } else
-        return false
-}
 
 async function postExist(post_id: number) {
     const post = await findPostById(post_id)
@@ -112,25 +103,14 @@ export const validateLogin = (req: Request, res: Response, next: NextFunction) =
 // Create Post validation 
 export const validateCreatePost = (req: Request, res: Response, next: NextFunction) => {
 
-    // Validate title, body, user_id
+    // Validate title, body, as Auth validates user
     const errors = isEmpty([
         req.body.title,
-        req.body.body,
-        req.body.user_id
+        req.body.content,
     ]);
 
     if (errors.length > 0) {
         return res.status(400).json({ errors });
-    }
-
-    if (!userExist(req.body.user_id)) {
-        return res.status(400).json({
-            errors: [
-                {
-                    message: 'Invalid user'
-                }
-            ]
-        });
     }
 
     next();
@@ -140,25 +120,13 @@ export const validateCreatePost = (req: Request, res: Response, next: NextFuncti
 // Create Comment validation
 export const validateCreateComment = (req: Request, res: Response, next: NextFunction) => {
 
-    // Validate content, post_id, user_id
+    // Validate content, post_id, as Auth validates user
     const errors = isEmpty([
         req.body.content,
-        req.body.post_id,
-        req.body.user_id
     ]);
 
     if (errors.length > 0) {
         return res.status(400).json({ errors });
-    }
-
-    if (!userExist(req.body.user_id)) {
-        return res.status(400).json({
-            errors: [
-                {
-                    message: 'Invalid user'
-                }
-            ]
-        });
     }
 
     if (!postExist(req.body.post_id)) {

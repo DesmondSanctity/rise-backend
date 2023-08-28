@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-interface DecodedToken extends JwtPayload {
+export interface DecodedToken extends JwtPayload {
     exp: number;
     user_id: string;
     email: string

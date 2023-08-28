@@ -50,7 +50,7 @@ export async function updateComment(id: number, content?: string) {
         params.push(content);
     }
 
-    query += ` WHERE id = $${params.length + 1}`;
+    query += ` WHERE id = $1`;
 
     const result = await db.query(query, params);
 

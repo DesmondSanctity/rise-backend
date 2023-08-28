@@ -8,7 +8,7 @@ import {
     deletePost
 } from '../models/post.js';
 import { IComment, createComment } from '../models/comment.js';
-import { validateCreateComment, validateCreatePost } from '../middlewares/validate.js';
+import { validateCreateComment } from '../middlewares/validate.js';
 import { Auth } from '../middlewares/auth.js';
 
 
@@ -16,10 +16,11 @@ const postRouter = Router();
 
 // POST /posts/:id/comments
 postRouter.post('/:id/comments', Auth, validateCreateComment, async (req: Request, res: Response) => {
-    const { content, post_id, user_id } = req.body;
+    const { content, user_id } = req.body;
+    const { id } = req.params;
 
     try {
-        const comment: IComment = await createComment(content, post_id, user_id);
+        const comment: IComment = await createComment(content, parseInt(id), user_id);
 
         return res.status(201).json(comment);
 
@@ -54,7 +55,7 @@ postRouter.get('/:id', async (req: Request, res: Response) => {
 });
 
 // PUT /posts/:id
-postRouter.put('/:id', Auth, validateCreatePost, async (req: Request, res: Response) => {
+postRouter.put('/:id', Auth, async (req: Request, res: Response) => {
     // Implement update post logic
     const id = parseInt(req.params.id);
     const { title, content } = req.body;
@@ -66,7 +67,7 @@ postRouter.put('/:id', Auth, validateCreatePost, async (req: Request, res: Respo
         }
         return res.status(204).end();
     } catch (err) {
-        return res.status(500).json({ message: 'Error updating post' });
+        return res.status(500).json({ message: 'Error updating post', error: err });
     }
 });
 
