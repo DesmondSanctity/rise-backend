@@ -9,11 +9,14 @@ import {
     findUserById,
     updateUser,
     deleteUser,
-    findUserByEmail
+    findUserByEmail,
+    findTopThree
 } from '../models/user.js';
+import { IPost, createPost, findPostByUser } from '../models/post.js';
 import {
     validateCreateUser,
-    validateLogin
+    validateLogin,
+    validateCreatePost
 } from '../middlewares/validate.js';
 import { Auth } from '../middlewares/auth.js';
 
@@ -36,6 +39,18 @@ userRouter.post('/', validateCreateUser, async (req: Request, res: Response) => 
     }
 });
 
+// POST users/:id/posts
+userRouter.post('/:id/posts', Auth, validateCreatePost, async (req: Request, res: Response) => {
+    const { title, content, user_id } = req.body;
+
+    try {
+        const post: IPost = await createPost(title, content, user_id);
+        return res.status(201).json(post);
+    } catch (err) {
+        return res.status(500).json({ message: 'Error creating post' });
+    }
+});
+
 // GET /users
 userRouter.get('/', Auth, async (req: Request, res: Response) => {
     try {
@@ -44,6 +59,28 @@ userRouter.get('/', Auth, async (req: Request, res: Response) => {
         return res.json(users);
     } catch (err) {
         return res.status(500).json({ message: 'Error getting users' });
+    }
+});
+
+// GET /topthree
+userRouter.get('/topthree', Auth, async (req: Request, res: Response) => {
+    try {
+        const users: IUser[] = await findTopThree();
+
+        return res.json(users);
+    } catch (err) {
+        return res.status(500).json({ message: 'Error getting top three users' });
+    }
+});
+
+// GET users/:id/posts
+userRouter.get('/:id/posts', async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    try {
+        const posts: IPost[] | null = await findPostByUser(id);
+        return res.json(posts);
+    } catch (err) {
+        return res.status(500).json({ message: 'Error getting posts' });
     }
 });
 

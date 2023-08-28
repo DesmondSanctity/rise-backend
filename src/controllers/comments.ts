@@ -14,20 +14,6 @@ import { validateCreateComment } from '../middlewares/validate.js';
 
 const commentRouter = Router();
 
-// POST /comments
-commentRouter.post('/', Auth, validateCreateComment, async (req: Request, res: Response) => {
-    const { content, post_id, user_id } = req.body;
-
-    try {
-        const comment: IComment = await createComment(content, post_id, user_id);
-
-        return res.status(201).json(comment);
-
-    } catch (err) {
-        return res.status(500).json({ message: 'Error creating comment' });
-    }
-});
-
 // GET /comments
 commentRouter.get('/', async (req: Request, res: Response) => {
     try {

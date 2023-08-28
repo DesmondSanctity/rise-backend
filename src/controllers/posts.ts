@@ -2,27 +2,29 @@ import { Request, Response, NextFunction } from 'express';
 import { Router } from 'express';
 import {
     IPost,
-    createPost,
     findAllPosts,
     findPostById,
     updatePost,
     deletePost
 } from '../models/post.js';
-import { validateCreatePost } from '../middlewares/validate.js';
+import { IComment, createComment } from '../models/comment.js';
+import { validateCreateComment, validateCreatePost } from '../middlewares/validate.js';
 import { Auth } from '../middlewares/auth.js';
 
 
 const postRouter = Router();
 
-// POST /posts
-postRouter.post('/', Auth, validateCreatePost, async (req: Request, res: Response) => {
-    const { title, content, user_id } = req.body;
+// POST /posts/:id/comments
+postRouter.post('/:id/comments', Auth, validateCreateComment, async (req: Request, res: Response) => {
+    const { content, post_id, user_id } = req.body;
 
     try {
-        const post: IPost = await createPost(title, content, user_id);
-        return res.status(201).json(post);
+        const comment: IComment = await createComment(content, post_id, user_id);
+
+        return res.status(201).json(comment);
+
     } catch (err) {
-        return res.status(500).json({ message: 'Error creating post' });
+        return res.status(500).json({ message: 'Error creating comment' });
     }
 });
 

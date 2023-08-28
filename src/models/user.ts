@@ -50,6 +50,38 @@ export async function findUserByEmail(email: string): Promise<IUser | null> {
     return rows[0] || null;
 }
 
+export async function findTopThree(): Promise<IUser[]> {
+    // Use efficient JOIN with LIMIT to get top 3 users by post count
+    const topUsers = await db.query(
+        `SELECT u.id, u.name 
+       FROM users u
+       LEFT JOIN posts p ON u.id = p.user_id
+       GROUP BY u.id
+       ORDER BY COUNT(p.id) DESC
+       LIMIT 3`
+    );
+    
+    const topUsersWithComments: {id: number, name: string, latestComment: string}[] = [];
+    
+    for (const user of topUsers.rows) {
+        // Get latest comment for each top user
+        const latestComment = await db.query(
+            `SELECT c.content 
+            FROM comments c 
+            WHERE c.post_id IN (SELECT id FROM posts WHERE user_id = $1)
+            ORDER BY c.created_at DESC 
+            LIMIT 1
+            `, [user.id]);
+
+        topUsersWithComments.push({
+            ...user,
+            latestComment: latestComment.rows[0]?.content
+        });
+    }
+
+    return topUsersWithComments as unknown as IUser[];
+}
+
 // Update
 export async function updateUser(id: number, name?: string, email?: string, password?: string) {
     const params: (string | number)[] = [id];

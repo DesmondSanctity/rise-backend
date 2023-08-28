@@ -15,12 +15,21 @@ services:
     container_name: postgres
     image: postgres
     ports:
-      - '5433:${DB_PORT}'
+      - '${DB_PORT}:${DB_PORT}'
     volumes:
       - data:/data/db
     environment:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+
+    # Healthcheck
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes: 
  data: {}
+ 

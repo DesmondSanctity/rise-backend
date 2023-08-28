@@ -28,6 +28,13 @@ export async function findPostById(id: number): Promise<IPost | null> {
     return rows[0] || null;
 }
 
+// Read All by User
+export async function findPostByUser(id: number): Promise<IPost[] | null> {
+    const query = 'SELECT * FROM posts WHERE user_id = $1';
+    const { rows } = await db.query(query, [id]);
+    return rows[0] || null;
+}
+
 // Read All
 export async function findAllPosts(): Promise<IPost[]> {
     const query = `SELECT * FROM posts`;
