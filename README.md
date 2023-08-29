@@ -27,7 +27,7 @@ DB_USER=<db user>
 DB_HOST=localhost
 DB_PASSWORD=<your password>
 DB_PORT=5432
-PORT=5000
+PORT=5000/
 DB_NAME=<db name>
 REDIS_URL=<your redis url>
 ```
@@ -45,7 +45,7 @@ The docker-compose.yml file contains the config to build and run the app using D
 
 ## testing the app
 
-To run tests on Postman, kindly visit the collection using this [link](https://api.postman.com/collections/11664548-8ea7a201-0b3d-4c8b-ac18-2f1ab8b49457?access_key=PMAT-01H8YSFVPDW65T0451Y0BB1YDR)
+To run tests on Postman, kindly visit the collection using this [link](https://www.postman.com/0xanon/workspace/rise/collection/11664548-8ea7a201-0b3d-4c8b-ac18-2f1ab8b49457?action=share&creator=11664548)
 
 To run the unit test, run this command:
 ```
